@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import org.techtown.quizeapp_1.databinding.ActivityMainBinding
 
@@ -32,8 +34,40 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         binding.option4Text.setOnClickListener(this)
 
 
+        binding.submitBtn.setOnClickListener {
+            if(selectedOption != 0) {
+                val question = questionList[currentPosition - 1]
+                if (question.correct_answer != selectedOption) {
+                    setColor(selectedOption, R.drawable.wrong_option_background)
+                    callDialog("오답 ", "정답은 ${question.correct_answer}")
+                }
+
+                setColor(question.correct_answer, R.drawable.correct_option_background)
+                if (currentPosition == questionList.size) {
+                    binding.submitBtn.text = getString(R.string.submit, "끝")
+                }
+                else {
+                    binding.submitBtn.text = getString(R.string.submit, "다음")
+                }
+            } else {
+                // 위치값 +1하기
+                currentPosition++
+                when {
+                    currentPosition <= questionList.size -> {
+                        getQuestionData()
+                    } else -> {
+                        //결과 액티비티로 넘어감
+                        Toast.makeText(this, "끝", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            //선택값 초기화
+            selectedOption = 0
+        }
     }
     private fun getQuestionData() {
+        setOptionStyle()
+
         //질문 변수에 담기
         val question = questionList[currentPosition - 1]
         //
@@ -91,5 +125,25 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.option3_text -> selectedOptionStyle(binding.option3Text, 3)
             R.id.option4_text -> selectedOptionStyle(binding.option4Text, 4)
         }
+    }
+
+    private fun setColor(opt: Int, color: Int) {
+        when (opt) {
+            1 -> binding.option1Text.background = ContextCompat.getDrawable(this,color)
+            2 -> binding.option2Text.background = ContextCompat.getDrawable(this,color)
+            3 -> binding.option3Text.background = ContextCompat.getDrawable(this,color)
+            4 -> binding.option4Text.background = ContextCompat.getDrawable(this,color)
+        }
+    }
+    private fun callDialog(alertTitle: String, correctAnswer: String) {
+        AlertDialog.Builder(this)
+            .setTitle(alertTitle)
+            .setMessage("정답: $correctAnswer")
+            .setPositiveButton("OK") {
+                dialogInterface, i ->
+                dialogInterface.dismiss()
+            }
+            .setCancelable(false)
+            .show()
     }
 }
